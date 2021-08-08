@@ -49,8 +49,9 @@ minetest.register_on_respawnplayer(function(player)
         local node = minetest.get_node(pos)
         if minetest.get_item_group(node.name, "bed") > 0 then
             minetest.dig_node(pos)
+            minetest.set_node(pos, {name="air"}) -- Protection fix
             local player_name = player:get_player_name()
-            minetest.chat_send_player(player_name, "You lost you'r bed at "..math.floor(pos.x)..","..math.floor(pos.z).." and now will reborn at spawn.")
+            minetest.chat_send_player(player_name, "You lost your bed at "..math.floor(pos.x)..","..math.floor(pos.z).." and now will reborn at spawn.")
         end
         return
     end
