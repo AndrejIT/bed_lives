@@ -4,6 +4,11 @@ bed_lives.max_bed_lives = 6
 
 local hud_ids_by_player_name = {}
 
+local beds_mod_present = false
+
+if _G["beds"] then
+    beds_mod_present = true
+end
 
 
 function bed_lives.set_lives(player, lives)
@@ -51,6 +56,7 @@ minetest.register_on_respawnplayer(function(player)
             minetest.dig_node(pos)
             minetest.set_node(pos, {name="air"}) -- Protection fix
             local player_name = player:get_player_name()
+            minetest.log("action", "Player lost his bed at "..math.floor(pos.x)..","..math.floor(pos.z).." because lives are up")
             minetest.chat_send_player(player_name, "You lost your bed at "..math.floor(pos.x)..","..math.floor(pos.z).." and now will reborn at spawn.")
         end
         return
@@ -63,7 +69,7 @@ minetest.register_on_leaveplayer(function(player)
 	hud_ids_by_player_name[player:get_player_name()] = nil
 end)
 
-if _G["beds"] then
+if beds_mod_present then
     local remove_bed_spawn = function(pos)
         for key, val in pairs(beds.spawn) do
             local v = vector.round(val)
@@ -95,9 +101,8 @@ if _G["beds"] then
         old_on_destruct4(pos)
         remove_bed_spawn(pos)
     end
-end
 
-if _G["beds"] then
+
     -- replenish bed lives when players sleep
     local old_set_spawns = beds.set_spawns
     beds.set_spawns = function()
