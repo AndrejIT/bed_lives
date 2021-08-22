@@ -21,12 +21,35 @@ function bed_lives.set_lives(player, lives)
 end
 
 function bed_lives.get_lives(player)
-    return tonumber(player:get_meta():get_string("bed_lives:lives"))
+    local raw_lives = player:get_meta():get_string("bed_lives:lives")
+    local lives = 0
+    -- give lives at first login
+    if raw_lives == "" then
+        lives = bed_lives.max_bed_lives
+    -- remove lives when there is no bed respawn point saved
+    elseif bed_lives.check_bed_spawnpoint(player) == false then
+        lives = 0
+    -- othervise get saved lives data
+    else
+        lives = tonumber(raw_lives)
+    end
+
+    return lives
+end
+
+function bed_lives.check_bed_spawnpoint(player)
+    if beds_mod_present then
+        local player_name = player:get_player_name()
+        if beds.spawn[player_name] == nil then
+            return false
+        end
+    end
+    return true
 end
 
 
 minetest.register_on_joinplayer(function(player)
-	local lives = bed_lives.get_lives(player) or bed_lives.max_bed_lives
+	local lives = bed_lives.get_lives(player)
     player:get_meta():set_string("bed_lives:lives", tostring(lives))
 	local id = player:hud_add({
 		name = "bed_lives",
@@ -70,6 +93,8 @@ minetest.register_on_leaveplayer(function(player)
 end)
 
 if beds_mod_present then
+
+    -- Remove spawn when bed is removed
     local remove_bed_spawn = function(pos)
         for key, val in pairs(beds.spawn) do
             local v = vector.round(val)
